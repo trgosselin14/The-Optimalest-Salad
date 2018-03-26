@@ -1,7 +1,7 @@
 import pandas as pd
 import random
 import itertools
-import copy
+import numpy as np
 
 # Nutritional Facts Data mg per g of items
 
@@ -12,13 +12,15 @@ def nut_val():
 
 
 foods = ['Kale', 'Olives', 'Carrots', 'Cheese', 'Onions', ]
-labels = ['Name', 'Fat', 'Carbs', 'Protein', 'Fiber', 'Iron', ]
-
-table = [[i, [nut_val() for j in foods]] for i in labels]
+nut_labels = ['Name', 'Fat', 'Carbs', 'Protein', 'Fiber', 'Iron', ]
+nut_labels_only = nut_labels[1:]
+table = [[i, [nut_val() for j in foods]] for i in nut_labels]
 
 table[0][1] = foods
-
+scoring_dict = {'Fat':-1, 'Carbs':-1, 'Protein':1, 'Fiber':1, 'Iron':1,}
+scoring_list = [-1, -1, 1, 1,1]
 nutr_vals = pd.DataFrame.from_items(table)
+nutr_vals_matrix = nutr_vals.iloc[:,1:].values
 
 
 """
@@ -111,25 +113,32 @@ def first_index_lists():
         index_lists.append(init_list.copy())
     return index_lists
 
-def distribute(index_lists):
-    for list_ in index_lists:
-        non_perm_dists = []
-        to_dist = list_[0] - 1
-        to_dist_holder = to_dist
-        new_list = list_.copy()[1:]
-        for i in range(0,len(new_list)):
-            index_range = list(range(0, i+1))
-            while to_dist > 0:
-                for j in index_range:
-                    new_list[j] +=1
-                    to_dist -= 1
-                    if to_dist == 0:
-                        break
-            new_list.insert(0,list_[0] - to_dist_holder)
-            non_perm_dists.append(new_list)
-            to_dist = to_dist_holder
-            new_list = list_.copy()[1:]
-        print(set(map(tuple, non_perm_dists)))
+def distribute(init_list):
+    non_perm_dists = []
+    to_dist = init_list[0] - 1
+    to_dist_holder = to_dist
+    new_list = init_list.copy()[1:]
+    for i in range(0,len(new_list)):
+        index_range = list(range(0, i+1))
+        while to_dist > 0:
+            for j in index_range:
+                new_list[j] +=1
+                to_dist -= 1
+                if to_dist == 0:
+                    break
+        new_list.insert(0,init_list[0] - to_dist_holder)
+        non_perm_dists.append(new_list)
+        to_dist = to_dist_holder
+        new_list = init_list.copy()[1:]
+    unique_sets = list(set(map(tuple, non_perm_dists)))
+    all_permutations = []
+    #print(unique_sets)
+    for unique in unique_sets:
+        perms = set(itertools.permutations(unique))
+        for perm in perms:
+            all_permutations.append(perm)
+
+    return all_permutations
 
 """def distribute(index_lists):
     for list_ in index_lists:
@@ -150,10 +159,28 @@ def distribute(index_lists):
             new_list = list_.copy()[1:]
 """
 
+#x = distribute([[5,1,1,1,1]])
+#print(x)
+
+def main(given_weight, number_of_ingredients):
+    ingredient_names = ['Kale', 'Olives', 'Carrots', 'Cheese', 'Onions', ]
+    init_list = generate_init_list(given_weight, number_of_ingredients)
+    sets = distribute(init_list)
+    df = pd.DataFrame.from_records(sets, columns=ingredient_names)
+    return df
 
 
 
-distribute([[4,1,1,1,1]])
+x = main(7,5)
+
+
+vals_by_iter = np.dot(x.values,nutr_vals_matrix)
+iter_nut_df = pd.DataFrame(vals_by_iter, columns=nut_labels_only)
+iter_nut_df['Dot'] = iter_nut_df.dot(scoring_list)
+iter_nut_df.sort_values('Dot',ascending=False,inplace=True)
+print(iter_nut_df)
+
+
 
 
 

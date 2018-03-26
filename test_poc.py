@@ -14,8 +14,7 @@ class TestPoc(unittest.TestCase):
         self.assertEqual(poc.first_index_lists(), [[1, 1, 1, 1, 1, ],[2,1,1,1,1],[3,1,1,1,1]])
 
     def test_distribute(self):
-        pass
-        #self.assetEqual(poc.distribute([[2,1,1,1,1]]), [[2,1,1,1,1],[1,2,1,1,1],[1,1,2,1,1],[1,1,1,2,1],[1,1,1,1,2]])
+        self.assertEqual(poc.distribute([2,1,1,1,1]), [(2, 1, 1, 1, 1),(1, 1, 2, 1, 1),(1, 1, 1, 2, 1),(1, 1, 1, 1, 2),(1, 2, 1, 1, 1)])
 
 if __name__ == '__main__':
     unittest.main()
