@@ -17,12 +17,14 @@ class BuildNutritionDB:
     def __init__(self):
         self.api_key = "uccIJar8k7Ps1nLu9PCJprLAPVgQWaO6MUWtVYM1"
         self.dbpath = os.getcwd() + "/fooddb.csv"
+        self.target_nutrients = {'protein':}
         self.food_dicts = []
+        self.food_query = []
 
 
 
     # take an item from list and check if it is in the database currently
-    def DB_Test(self,list_of_food_names):
+    def searchDB(self,list_of_food_names):
         try:
             nutdb = pd.read_csv(self.dbpath)
         except:
@@ -31,10 +33,64 @@ class BuildNutritionDB:
         for name in list_of_food_names:
             if name in list(nutdb['Name']):
                 self.food_dicts.append(nutdb[nutdb['Name'] == name].to_dict(orient='records'))
-        return self.food_dicts
+            # if the item is not in the list, add the item to a search list
+            else:
+                self.food_query.append(name)
+
+    def connectUSDA(self):
+        if len(self.food_query) == 0:
+            print('Nothing to query.')
+        else:
+            query_results = []
+            for food in self.food_query:
+                parameters = {"api_key": self.api_key, "q": food, 'ds': 'Standard Reference', "format": 'json'}
+                search = requests.get(" https://api.nal.usda.gov/ndb/search/?", params=parameters)
+                json_object = search.json()
+                query_items = json_object['list']['item']
+                try:
+                    query_dataframe = pd.DataFrame.from_dict(query_items).rename(columns={'offset':'Item Number',
+                                                                                          'name':'Name'})
+                    selection_dataframe = query_dataframe[['Name','Item Number']]
+                    selection_view = 0
+                    selection = ''
+
+                    while len(selection) == 0:
+
+                        print(selection_dataframe.iloc[0+selection_view:10+selection_view,:])
+                        print('')
+                        selection = input('Enter the item number that matches the correct food item. Press Enter to see more options. Type anything and press enter to exit: ')
+
+                        if selection_view < selection_dataframe.shape[0]:
+                            selection_view += 10
+                        else:
+                            selection_view = 0
+                        print('')
+                    try:
+                        selection = int(selection)
+                        query_results.append(query_dataframe.loc[selection].to_dict())
+                    except:
+                        break
+
+                except:
+                    query_results[food] = 'error'
+        ndbnos = []
+        for result in query_results:
+            parameters = {"api_key": self.api_key, "ndbno": result['ndbno'], "format": 'json'}
+            search = requests.get(" https://api.nal.usda.gov/ndb/reports/?", params=parameters)
+            json_object = search.json()
+            nutrient_table = json_object['report']['food']['nutrients']
+
+            #query_items = json_object['list']['item']
+            print(json_object['report']['food']['nutrients'])
+        #new_data = pd.DataFrame(query_results)
+        #new_data.to_csv(os.getcwd()+'/new_data.csv', index=False)
 
 
-    # if the item is not in the list, add the item to a search list
+x = BuildNutritionDB()
+x.searchDB(['Orange'])
+x.connectUSDA()
+
+
 
     # take the search list and return from the API the top ten results from that search
 
@@ -56,16 +112,16 @@ food_list = list(pd.read_csv(r'/home/trgosselin14/Projects/Optimal_Salad/food_li
 
 
 def get_database_ids(list_of_food_names):
-    dict_of_foods ={}
+    query_results ={}
     for food in list_of_food_names:
         parameters = {"api_key":api_key,"q":food, 'ds':'Standard Reference',"format":'json'}
         search = requests.get(" https://api.nal.usda.gov/ndb/search/?", params=parameters)
         json_object = search.json()
         try:
-            dict_of_foods[json_object['list']['item'][0]['name']] = json_object['list']['item'][0]['ndbno']
+            query_results[json_object['list']['item'][0]['name']] = json_object['list']['item'][0]['ndbno']
         except:
-            dict_of_foods[food] = 'error'
-    print(dict_of_foods)
+            query_results[food] = 'error'
+    print(query_results)
 
 get_database_ids(food_list)
 
