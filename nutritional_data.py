@@ -8,12 +8,47 @@ import pandas as pd
 import os
 
 
-class CollectNutritionData:
-    pass
+# if the food item is not in the list
+
+class BuildNutritionDB:
 
 
 
+    def __init__(self):
+        self.api_key = "uccIJar8k7Ps1nLu9PCJprLAPVgQWaO6MUWtVYM1"
+        self.dbpath = os.getcwd() + "/fooddb.csv"
+        self.food_dicts = []
 
+
+
+    # take an item from list and check if it is in the database currently
+    def DB_Test(self,list_of_food_names):
+        try:
+            nutdb = pd.read_csv(self.dbpath)
+        except:
+            print('Nutritional Database not found. Building DB.')
+            nutdb = pd.DataFrame()
+        for name in list_of_food_names:
+            if name in list(nutdb['Name']):
+                self.food_dicts.append(nutdb[nutdb['Name'] == name].to_dict(orient='records'))
+        return self.food_dicts
+
+
+    # if the item is not in the list, add the item to a search list
+
+    # take the search list and return from the API the top ten results from that search
+
+    # user input to select the desired item
+
+    # remove the items that had a selection from the search list
+
+    # ask user to update the names for those still in seach list
+
+    # publish names and ids to DB
+
+
+
+"""
 
 api_key = "uccIJar8k7Ps1nLu9PCJprLAPVgQWaO6MUWtVYM1"
 
@@ -39,3 +74,5 @@ get_database_ids(food_list)
 #r = requests.get(" https://api.nal.usda.gov/ndb/list?", params=parameters)
 
 #print(r.text)
+
+"""
