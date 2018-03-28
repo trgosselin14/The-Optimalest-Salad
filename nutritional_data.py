@@ -5,15 +5,21 @@ API to allow other modules to access the nutritional data.
 
 import requests
 import pandas as pd
+import os
+
+
+class CollectNutritionData:
+    pass
+
+
+
+
 
 api_key = "uccIJar8k7Ps1nLu9PCJprLAPVgQWaO6MUWtVYM1"
 
 food_list = list(pd.read_csv(r'/home/trgosselin14/Projects/Optimal_Salad/food_list.csv').columns)
 
 
-food_ndbno = {"Kale":11233,}
-#food_list = foods = ['Kale', 'Olives, pickled', 'Carrots', 'mozzarella cheese shredded', 'onion, raw', ]
-# Return the NDBNO for food in a list
 def get_database_ids(list_of_food_names):
     dict_of_foods ={}
     for food in list_of_food_names:
