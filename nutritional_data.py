@@ -10,6 +10,21 @@ import os
 
 # if the food item is not in the list
 
+"""
+Daily values to use: 
+- Fat (limit)
+    - Sat Fat limit
+- Cholesterol (limit)
+- Sodium (limit)
+- Potassium
+- Carbs
+    - fiber
+- Protein 
+- Vit. A, B6, B12, C, D, E, K
+- Iron
+- Calcium
+"""
+
 class BuildNutritionDB:
 
 
@@ -17,7 +32,7 @@ class BuildNutritionDB:
     def __init__(self):
         self.api_key = "uccIJar8k7Ps1nLu9PCJprLAPVgQWaO6MUWtVYM1"
         self.dbpath = os.getcwd() + "/fooddb.csv"
-        self.target_nutrients = {'protein':}
+        self.target_nutrients = {'fat':'204','cholesterol':'601','protein':'203','sodium':'307','carbohydrates':'205','iron':'303','calcium':'301','potassium':'306'}
         self.food_dicts = []
         self.food_query = []
 
@@ -82,8 +97,8 @@ class BuildNutritionDB:
 
             #query_items = json_object['list']['item']
             print(json_object['report']['food']['nutrients'])
-        #new_data = pd.DataFrame(query_results)
-        #new_data.to_csv(os.getcwd()+'/new_data.csv', index=False)
+        new_data = pd.DataFrame(query_results)
+        new_data.to_csv(os.getcwd()+'/new_data.csv', index=False)
 
 
 x = BuildNutritionDB()
