@@ -119,9 +119,17 @@ class BuildNutritionDB:
                                                               "Total lipid (fat)":"Fat",
                                                               "Unit Weight":"Unit Weight"})
         self.nutrient_db = self.nutrient_db[['Name','Calcium','Carbohydrates','Cholesterol','Fat','Iron','Potassium','Protein','Sodium','Unit Weight']]
+        unit_weights = self.nutrient_db['Unit Weight']
+        unit_weights_scaled = 1/unit_weights
+        for nutrient in ['Calcium','Carbohydrates','Cholesterol','Fat','Iron','Potassium','Protein','Sodium',]:
+            self.nutrient_db[nutrient] = [a*b for a,b in zip(self.nutrient_db[nutrient],unit_weights_scaled)]
+        self.nutrient_db.drop(['Unit Weight'], axis = 1, inplace = True)
         self.nutrient_db.to_csv(self.dbpath, index=False)
 
 
+
+
 x = BuildNutritionDB(['Kale','Onion','Carrot','Cheddar Cheese','Olives'])
+
 x.connectUSDA()
 

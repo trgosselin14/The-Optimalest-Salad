@@ -15,13 +15,13 @@ foods = ['Kale', 'Olives', 'Carrots', 'Cheese', 'Onions', ]
 nut_labels = ['Name', 'Fat', 'Carbs', 'Protein', 'Fiber', 'Iron', ]
 nut_labels_only = nut_labels[1:]
 table = [[i, [nut_val() for j in foods]] for i in nut_labels]
-
+print(table)
 table[0][1] = foods
 scoring_dict = {'Fat':-1, 'Carbs':-1, 'Protein':1, 'Fiber':1, 'Iron':1,}
 scoring_list = [-1, -1, 1, 1,1]
 nutr_vals = pd.DataFrame.from_items(table)
 nutr_vals_matrix = nutr_vals.iloc[:,1:].values
-
+print(nutr_vals)
 
 """
 class Food:
@@ -173,12 +173,15 @@ def main(given_weight, number_of_ingredients):
 
 x = main(7,5)
 
-
+print(nutr_vals_matrix)
+print(x)
 vals_by_iter = np.dot(x.values,nutr_vals_matrix)
+#print(vals_by_iter)
 iter_nut_df = pd.DataFrame(vals_by_iter, columns=nut_labels_only)
+#print(iter_nut_df)
 iter_nut_df['Dot'] = iter_nut_df.dot(scoring_list)
 iter_nut_df.sort_values('Dot',ascending=False,inplace=True)
-print(iter_nut_df)
+#print(iter_nut_df)
 
 
 
