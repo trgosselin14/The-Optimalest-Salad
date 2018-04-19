@@ -7,7 +7,6 @@ import requests
 import pandas as pd
 import os
 
-
 # if the food item is not in the list
 
 """
@@ -29,28 +28,20 @@ class BuildNutritionDB:
 
 
 
-    def __init__(self):
-        self.api_key = "uccIJar8k7Ps1nLu9PCJprLAPVgQWaO6MUWtVYM1"
-        self.dbpath = os.getcwd() + "/fooddb.csv"
+    def __init__(self,list_of_food_names = []):
+        self.dbpath = os.path.dirname(__file__) + "/Data/fooddb.csv"
         self.target_nutrients = {'fat':'204','cholesterol':'601','protein':'203','sodium':'307','carbohydrates':'205','iron':'303','calcium':'301','potassium':'306'}
-        self.food_dicts = []
-        self.food_query = []
+        self.food_query = list_of_food_names
 
+        if not os.path.exists(os.path.dirname(__file__)+'/Data'):
+            os.makedirs(os.path.dirname(__file__)+'/Data')
+
+        with open(os.path.dirname(__file__) + "/Secrets/api_key.txt",'r') as key:
+            dict = eval(key.read())
+        self.api_key = dict["api_key"]
 
 
     # take an item from list and check if it is in the database currently
-    def searchDB(self,list_of_food_names):
-        try:
-            nutdb = pd.read_csv(self.dbpath)
-        except:
-            print('Nutritional Database not found. Building DB.')
-            nutdb = pd.DataFrame()
-        for name in list_of_food_names:
-            if name in list(nutdb['Name']):
-                self.food_dicts.append(nutdb[nutdb['Name'] == name].to_dict(orient='records'))
-            # if the item is not in the list, add the item to a search list
-            else:
-                self.food_query.append(name)
 
     def connectUSDA(self):
         if len(self.food_query) == 0:
@@ -88,8 +79,9 @@ class BuildNutritionDB:
 
                 except:
                     query_results[food] = 'error'
-
+        record_list = []
         for result in query_results:
+            record_dict = {}
             parameters = {"api_key": self.api_key, "ndbno": result['ndbno'], "format": 'json'}
             nutrient_ids_list = list(self.target_nutrients.values())
             #print(nutrient_ids_list)
@@ -99,58 +91,37 @@ class BuildNutritionDB:
             search = requests.get(" https://api.nal.usda.gov/ndb/nutrients/?", params=parameters)
             json_object = search.json()
             #print(json_object)
-            nutrient_table = json_object['report']['foods'][0]
-            print(nutrient_table)
-            #query_items = json_object['list']['item']
-            #print(json_object['report']['food']['nutrients'])
-        new_data = pd.DataFrame(nutrient_table)
-        #print(new_data)
-        #new_data.to_csv(os.getcwd()+'/new_data.csv', index=False)
+            nutrient_table = json_object['report']['foods'][0]["nutrients"]
+            record_dict['Name'] = json_object['report']['foods'][0]['name']
+            record_dict["Unit Weight"] = json_object['report']['foods'][0]['weight']
+            for nutrient in nutrient_table:
+                nutrient_name = nutrient['nutrient']
+                try:
+                    if nutrient['unit'] == 'mg':
+                        nutrient_amount = float(nutrient['value'])/1000
+                    elif nutrient['unit'] != 'g':
+                        nutrient_amount = float(nutrient['value']) / 1000000
+                    else:
+                        nutrient_amount = float(nutrient['value'])
+                except ValueError:
+                    nutrient_amount = 0
+                record_dict[nutrient_name] = nutrient_amount
+            record_list.append(record_dict)
+        self.nutrient_db = pd.DataFrame(record_list)
+        self.nutrient_db = self.nutrient_db.rename(columns = {"Calcium, Ca":"Calcium",
+                                                              "Carbohydrate, by difference":"Carbohydrates",
+                                                              "Cholesterol":"Cholesterol",
+                                                              "Iron, Fe": "Iron",
+                                                              "Name" : "Name",
+                                                              "Potassium, K":"Potassium",
+                                                              "Protein":"Protein",
+                                                              "Sodium, Na":"Sodium",
+                                                              "Total lipid (fat)":"Fat",
+                                                              "Unit Weight":"Unit Weight"})
+        self.nutrient_db = self.nutrient_db[['Name','Calcium','Carbohydrates','Cholesterol','Fat','Iron','Potassium','Protein','Sodium','Unit Weight']]
+        self.nutrient_db.to_csv(self.dbpath, index=False)
 
 
-x = BuildNutritionDB()
-x.searchDB(['Orange'])
+x = BuildNutritionDB(['Kale','Onion','Carrot','Cheddar Cheese','Olives'])
 x.connectUSDA()
 
-
-
-    # take the search list and return from the API the top ten results from that search
-
-    # user input to select the desired item
-
-    # remove the items that had a selection from the search list
-
-    # ask user to update the names for those still in seach list
-
-    # publish names and ids to DB
-
-
-
-"""
-
-api_key = "uccIJar8k7Ps1nLu9PCJprLAPVgQWaO6MUWtVYM1"
-
-food_list = list(pd.read_csv(r'/home/trgosselin14/Projects/Optimal_Salad/food_list.csv').columns)
-
-
-def get_database_ids(list_of_food_names):
-    query_results ={}
-    for food in list_of_food_names:
-        parameters = {"api_key":api_key,"q":food, 'ds':'Standard Reference',"format":'json'}
-        search = requests.get(" https://api.nal.usda.gov/ndb/search/?", params=parameters)
-        json_object = search.json()
-        try:
-            query_results[json_object['list']['item'][0]['name']] = json_object['list']['item'][0]['ndbno']
-        except:
-            query_results[food] = 'error'
-    print(query_results)
-
-get_database_ids(food_list)
-
-
-
-#r = requests.get(" https://api.nal.usda.gov/ndb/list?", params=parameters)
-
-#print(r.text)
-
-"""
