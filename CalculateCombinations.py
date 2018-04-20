@@ -6,7 +6,7 @@ import numpy as np
 
 class Combinations:
 
-    def __init__(self,desired_weight = 5):
+    def __init__(self,desired_weight = 3):
         self.fooddb = pd.read_csv(os.path.dirname(__file__) + "/Data/fooddb.csv")
         self.foods = list(self.fooddb["Name"])
         self.nutrients = list(self.fooddb.columns)[1:]

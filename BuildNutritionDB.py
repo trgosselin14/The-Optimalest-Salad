@@ -30,7 +30,7 @@ class BuildNutritionDB:
 
     def __init__(self,list_of_food_names = []):
         self.dbpath = os.path.dirname(__file__) + "/Data/fooddb.csv"
-        self.target_nutrients = {'fat':'204','cholesterol':'601','protein':'203','sodium':'307','carbohydrates':'205','iron':'303','calcium':'301','potassium':'306'}
+        self.target_nutrients = {'fat':'204','cholesterol':'601','sodium':'307','carbohydrates':'205','fiber': '291'}
         self.food_query = list_of_food_names
 
         if not os.path.exists(os.path.dirname(__file__)+'/Data'):
@@ -108,24 +108,21 @@ class BuildNutritionDB:
                 record_dict[nutrient_name] = nutrient_amount
             record_list.append(record_dict)
         self.nutrient_db = pd.DataFrame(record_list)
-        self.nutrient_db = self.nutrient_db.rename(columns = {"Calcium, Ca":"Calcium",
-                                                              "Carbohydrate, by difference":"Carbohydrates",
+        self.nutrient_db = self.nutrient_db.rename(columns = {"Carbohydrate, by difference":"Carbohydrates",
                                                               "Cholesterol":"Cholesterol",
-                                                              "Iron, Fe": "Iron",
                                                               "Name" : "Name",
-                                                              "Potassium, K":"Potassium",
-                                                              "Protein":"Protein",
+                                                              "Fiber, total dietary" : 'Fiber',
                                                               "Sodium, Na":"Sodium",
                                                               "Total lipid (fat)":"Fat",
                                                               "Unit Weight":"Unit Weight"})
-        self.nutrient_db = self.nutrient_db[['Name','Calcium','Carbohydrates','Cholesterol','Fat','Iron','Potassium','Protein','Sodium','Unit Weight']]
+        self.nutrient_db = self.nutrient_db[['Name','Carbohydrates','Cholesterol','Fat','Sodium','Fiber','Unit Weight']]
         unit_weights = self.nutrient_db['Unit Weight']
         unit_weights_scaled = 1/unit_weights
-        for nutrient in ['Calcium','Carbohydrates','Cholesterol','Fat','Iron','Potassium','Protein','Sodium',]:
+        for nutrient in ['Carbohydrates','Cholesterol','Fat','Sodium','Fiber',]:
             self.nutrient_db[nutrient] = [a*b for a,b in zip(self.nutrient_db[nutrient],unit_weights_scaled)]
         self.nutrient_db.drop(['Unit Weight'], axis = 1, inplace = True)
         self.nutrient_db.to_csv(self.dbpath, index=False)
-
+        self.nut_score = (('Carbohydrates',1),('Cholesterol', -0.3),('Fat', -65),('Sodium', -2.4) ,('Fiber', 1))
 
 
 
