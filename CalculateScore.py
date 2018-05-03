@@ -39,4 +39,3 @@ if __name__ == "__main__":
                         'Cheese, cheddar, nonfat or fat free',
                         'Olives, pickled, canned or bottled, green'])
     x.calculate_nutritional_dot_product()
-    #print(x.dist_nutrients)
